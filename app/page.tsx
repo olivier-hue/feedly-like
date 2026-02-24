@@ -120,7 +120,7 @@ export default function Dashboard() {
     }
   };
 
-  // 3. Marquer comme lu
+  // 3. Marquer comme lu 
   const markAsRead = async (ids: number[]) => {
     if (ids.length === 0) return;
     setArticles(current => current.filter(a => !ids.includes(a.id)));
