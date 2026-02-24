@@ -1,0 +1,15 @@
+name: Hourly News Update
+on:
+  schedule:
+    # S'exécute toutes les heures à la minute 0
+    - cron: '0 * * * *'
+  workflow_dispatch: # Permet de le lancer manuellement depuis l'interface GitHub
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Cron API
+        run: |
+          curl -X GET "https://${{ secrets.VERCEL_PROJECT_URL }}/api/cron" \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
