@@ -1,0 +1,36 @@
+{
+  "name": "feedly-like-sports-esports-business",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "ingest": "tsx scripts/ingest.ts",
+    "analyze": "tsx scripts/analyze-with-gemini.ts"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.11.0",
+    "@supabase/supabase-js": "^2.48.0",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^17.3.1",
+    "lucide-react": "^0.575.0",
+    "next": "14.2.3",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "rss-parser": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "14.2.3",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
