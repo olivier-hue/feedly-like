@@ -1,33 +1,33 @@
-import { NextResponse } from "next/server";
-import { markAsRead } from "@/lib/db";
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-export const runtime = "nodejs";
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-type RouteParams = {
-  params: {
-    id: string;
-  };
-};
-
-export async function POST(_req: Request, { params }: RouteParams) {
-  const idNum = Number(params.id);
-  if (!Number.isInteger(idNum)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const id = params.id;
 
   try {
-    const data = await markAsRead(idNum);
+    const { data, error } = await supabase
+      .from('articles')
+      .update({ is_read: true })
+      .eq('id', id)
+      .select(); // On ajoute .select() pour récupérer l'article modifié
 
+    if (error) throw error;
+
+    // Correction de l'erreur TypeScript : on vérifie si data existe et n'est pas vide
     if (!data || data.length === 0) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "Article non trouvé" }, { status: 404 });
     }
 
-    return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to mark as read" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: true, article: data[0] });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
