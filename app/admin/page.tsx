@@ -1,7 +1,7 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Trash2, Plus, Save, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -123,7 +123,14 @@ export default function AdminPage() {
 
   // --- Affichage : Admin Panel ---
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 p-8 font-sans">
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-950 flex items-center justify-center text-blue-500">
+          <Loader2 className="animate-spin" size={40} />
+        </div>
+      }
+    >
+      <div className="min-h-screen bg-gray-950 text-gray-100 p-8 font-sans">
       <header className="max-w-5xl mx-auto mb-10 flex justify-between items-center border-b border-gray-800 pb-6">
         <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">⚙️ Back-Office</h1>
@@ -229,5 +236,6 @@ export default function AdminPage() {
 
       </div>
     </div>
+    </Suspense>
   );
 }
