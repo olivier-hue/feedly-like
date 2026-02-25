@@ -102,13 +102,25 @@ function AdminContent() {
                 <button onClick={addFeed} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg"><Plus size={20} /></button>
             </div>
             <div className="space-y-3">
-                {feeds.map(feed => (
-                    <div key={feed.id} className="flex justify-between items-center bg-gray-800 p-4 rounded-lg group">
-                        <span className="font-bold">{feed.name}</span>
-                        <button onClick={() => deleteFeed(feed.id)} className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100"><Trash2 size={18} /></button>
-                    </div>
-                ))}
+    {feeds.map(feed => (
+        <div key={feed.id} className="bg-gray-800 p-4 rounded-lg group">
+            <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-1">
+                    <span className="font-bold text-blue-400">{feed.name}</span>
+                    <span className="text-xs text-gray-500 font-mono break-all italic">
+                        {feed.url}
+                    </span>
+                </div>
+                <button 
+                    onClick={() => deleteFeed(feed.id)} 
+                    className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                    <Trash2 size={18} />
+                </button>
             </div>
+        </div>
+    ))}
+</div>
         </section>
 
         <section className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
