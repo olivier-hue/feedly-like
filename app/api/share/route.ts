@@ -9,19 +9,16 @@ export async function POST(req: NextRequest) {
 
   let url = "";
   let title = "";
-  let secret = "";
 
   // 1. Extraction des données (Support JSON et Formulaire iOS)
   if (contentType.includes("application/x-www-form-urlencoded")) {
     const formData = await req.formData();
     url = (formData.get("url") as string) ?? "";
     title = (formData.get("title") as string) ?? "";
-    secret = (formData.get("secret") as string) ?? "";
   } else {
     const json = await req.json().catch(() => ({}));
     url = (json.url ?? "").trim();
     title = (json.title ?? "").trim();
-    secret = json.secret ?? "";
     // If url is empty but title looks like a URL, use it as url
     if (!url && title.startsWith("http")) {
       url = title;
@@ -32,11 +29,6 @@ export async function POST(req: NextRequest) {
   }
 
   console.log("Share received - body:", { url, title });
-
-  // 2. Vérification de sécurité (Important pour IOS)
-  if (secret !== process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
   if (!url) {
     return NextResponse.json({ error: "Missing url" }, { status: 400 });
