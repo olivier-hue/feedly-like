@@ -5,6 +5,7 @@ export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   const contentType = req.headers.get("content-type") ?? "";
+  console.log("Share received - contentType:", contentType);
 
   let url = "";
   let title = "";
@@ -18,10 +19,19 @@ export async function POST(req: NextRequest) {
     secret = (formData.get("secret") as string) ?? "";
   } else {
     const json = await req.json().catch(() => ({}));
-    url = json.url ?? "";
-    title = json.title ?? "";
+    url = (json.url ?? "").trim();
+    title = (json.title ?? "").trim();
     secret = json.secret ?? "";
+    // If url is empty but title looks like a URL, use it as url
+    if (!url && title.startsWith("http")) {
+      url = title;
+      title = "";
+    }
+    // Remove any URL found inside the title
+    title = title.replace(/\s*https?:\/\/[^\s]+/gi, "").trim();
   }
+
+  console.log("Share received - body:", { url, title });
 
   // 2. Vérification de sécurité (Important pour IOS)
   if (secret !== process.env.NEXT_PUBLIC_ADMIN_SECRET) {

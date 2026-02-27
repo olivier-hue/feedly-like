@@ -4,6 +4,9 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
+const BOOKMARKLET_CODE =
+  "javascript:(function(){window.open('https://feedly-like.vercel.app/share?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title),'_blank')})();";
+
 function ShareForm() {
   const searchParams = useSearchParams();
   const urlParam = searchParams.get("url") ?? "";
@@ -12,6 +15,7 @@ function ShareForm() {
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [codeCopied, setCodeCopied] = useState(false);
 
   useEffect(() => {
     setUrl(urlParam);
@@ -120,12 +124,34 @@ function ShareForm() {
             Pour partager en 1 clic depuis Safari, faites glisser ce bouton dans votre barre de favoris :
           </p>
           <a
-            href="javascript:(function(){window.open('https://feedly-like.vercel.app/share?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title),'_blank')})();"
+            href={BOOKMARKLET_CODE}
             draggable
             className="inline-block bg-amber-500 hover:bg-amber-400 text-gray-900 font-semibold px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all cursor-grab active:cursor-grabbing select-none"
           >
             📌 Partager vers Feedly Like
           </a>
+          <p className="text-sm text-gray-400 mt-4 mb-2">
+            Ou copiez ce code manuellement :
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              readOnly
+              value={BOOKMARKLET_CODE}
+              className="flex-1 min-w-0 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-300 text-xs font-mono"
+            />
+            <button
+              type="button"
+              onClick={async () => {
+                await navigator.clipboard.writeText(BOOKMARKLET_CODE);
+                setCodeCopied(true);
+                setTimeout(() => setCodeCopied(false), 2000);
+              }}
+              className="shrink-0 bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+            >
+              {codeCopied ? "Copié !" : "Copier"}
+            </button>
+          </div>
           <p className="text-xs text-gray-500 mt-4">
             Sur iOS : appuyez longuement sur ce bouton → Copier le lien → Créez un favori manuellement dans Safari et remplacez l&apos;URL par le lien copié.
           </p>
