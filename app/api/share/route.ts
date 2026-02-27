@@ -19,6 +19,25 @@ export async function POST(req: NextRequest) {
     const json = await req.json().catch(() => ({}));
     url = (json.url ?? "").trim();
     title = (json.title ?? "").trim();
+    // Si url est vide mais title contient une URL après un saut de ligne
+    if (!url && title) {
+      const lines = title.split("\n").map((l) => l.trim()).filter(Boolean);
+      for (const line of lines) {
+        if (line.startsWith("http")) {
+          url = line;
+          title = lines.filter((l) => l !== line).join(" ").trim();
+          break;
+        }
+      }
+    }
+    // Si url est toujours vide, cherche une URL n'importe où dans title
+    if (!url && title) {
+      const urlMatch = title.match(/https?:\/\/[^\s]+/);
+      if (urlMatch) {
+        url = urlMatch[0];
+        title = title.replace(url, "").trim();
+      }
+    }
     // If url is empty but title looks like a URL, use it as url
     if (!url && title.startsWith("http")) {
       url = title;
