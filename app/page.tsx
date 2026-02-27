@@ -62,12 +62,13 @@ export default function Dashboard() {
   // --- Data Fetching ---
   const fetchArticles = async () => {
     setIsLoading(true);
-    const isReadStatus = viewMode === "archived"; 
-    
+    // Unread view: is_read === 0 (false). Archived: is_read === 1 (true).
+    const isReadValue = viewMode === "archived" ? 1 : 0;
+
     const { data, error } = await supabase
       .from("articles")
       .select("*")
-      .eq("is_read", isReadStatus)
+      .eq("is_read", isReadValue)
       .order("created_at", { ascending: false })
       .limit(viewMode === "archived" ? 100 : 1000); 
   
