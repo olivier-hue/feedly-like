@@ -26,6 +26,8 @@ function AdminContent() {
   const [blacklist, setBlacklist] = useState<any[]>([]);
   const [newFeed, setNewFeed] = useState({ name: "", url: "", category: "Général" });
   const [newKeyword, setNewKeyword] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analyzeResult, setAnalyzeResult] = useState<string | null>(null);
 
   useEffect(() => {
     const expectedSecret = process.env.NEXT_PUBLIC_ADMIN_SECRET;
@@ -69,6 +71,19 @@ function AdminContent() {
     setBlacklist(blacklist.filter(b => b.id !== id));
   };
 
+  const runAnalysis = async () => {
+    setIsAnalyzing(true);
+    setAnalyzeResult(null);
+    try {
+      const res = await fetch("/api/analyze", { method: "POST" });
+      const data = await res.json();
+      setAnalyzeResult(`✅ ${data.analyzed} article(s) analysé(s)`);
+    } catch {
+      setAnalyzeResult("❌ Erreur lors de l'analyse");
+    }
+    setIsAnalyzing(false);
+  };
+
   if (!isAuthorized && !isLoading) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white p-4">
@@ -94,6 +109,38 @@ function AdminContent() {
       </header>
 
       <div className="max-w-5xl mx-auto grid gap-10">
+        <section className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+          <h2 className="text-xl font-semibold mb-4 text-purple-400">🤖 Analyse Gemini</h2>
+          <p className="text-sm text-gray-400 mb-4">Lance l'analyse sur les 5 prochains articles non-analysés (6s entre chaque).</p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={runAnalysis}
+              disabled={isAnalyzing}
+              className="bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium transition-all"
+            >
+              {isAnalyzing ? <Loader2 size={18} className="animate-spin" /> : null}
+              {isAnalyzing ? 'Analyse en cours...' : '▶ Lancer analyse (5 articles)'}
+            </button>
+            {analyzeResult && <span className="text-sm text-gray-300">{analyzeResult}</span>}
+          </div>
+        </section>
+
+        <section className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+            <h2 className="text-xl font-semibold mb-6 text-red-400">🚫 Blacklist</h2>
+            <div className="flex gap-3 mb-6">
+                <input placeholder="Mot à bannir" className="bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm flex-1" value={newKeyword} onChange={e => setNewKeyword(e.target.value)} />
+                <button onClick={addKeyword} className="bg-red-900 hover:bg-red-600 text-white px-6 rounded-lg flex items-center gap-2"><Save size={18} /> Ajouter</button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+                {blacklist.map(item => (
+                    <div key={item.id} className="bg-gray-950 border border-gray-700 text-gray-300 pl-3 pr-2 py-1.5 rounded-full text-sm flex items-center gap-2">
+                        {item.keyword}
+                        <button onClick={() => deleteKeyword(item.id)} className="text-gray-600 hover:text-red-400">×</button>
+                    </div>
+                ))}
+            </div>
+        </section>
+
         <section className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
             <h2 className="text-xl font-semibold mb-6 text-blue-400">📡 Mes Flux RSS</h2>
             <div className="flex flex-col md:flex-row gap-3 mb-8">
@@ -121,22 +168,6 @@ function AdminContent() {
         </div>
     ))}
 </div>
-        </section>
-
-        <section className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-            <h2 className="text-xl font-semibold mb-6 text-red-400">🚫 Blacklist</h2>
-            <div className="flex gap-3 mb-6">
-                <input placeholder="Mot à bannir" className="bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm flex-1" value={newKeyword} onChange={e => setNewKeyword(e.target.value)} />
-                <button onClick={addKeyword} className="bg-red-900 hover:bg-red-600 text-white px-6 rounded-lg flex items-center gap-2"><Save size={18} /> Ajouter</button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-                {blacklist.map(item => (
-                    <div key={item.id} className="bg-gray-950 border border-gray-700 text-gray-300 pl-3 pr-2 py-1.5 rounded-full text-sm flex items-center gap-2">
-                        {item.keyword}
-                        <button onClick={() => deleteKeyword(item.id)} className="text-gray-600 hover:text-red-400">×</button>
-                    </div>
-                ))}
-            </div>
         </section>
       </div>
     </div>
