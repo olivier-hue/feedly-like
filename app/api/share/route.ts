@@ -49,6 +49,20 @@ export async function POST(req: NextRequest) {
 
   console.log("Share received - body:", { url, title });
 
+  if (url && !title) {
+    try {
+      const res = await fetch(url, {
+        headers: { "User-Agent": "Mozilla/5.0 Chrome/120.0.0.0" },
+        signal: AbortSignal.timeout(5000),
+      });
+      const html = await res.text();
+      const match = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+      if (match) title = match[1].trim();
+    } catch {
+      title = url; // fallback
+    }
+  }
+
   if (!url) {
     return NextResponse.json({ error: "Missing url" }, { status: 400 });
   }
