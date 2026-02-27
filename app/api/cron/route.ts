@@ -35,36 +35,30 @@ export async function GET(request: Request) {
     const { data: feeds } = await supabase.from('feeds').select('*').eq('active', true);
     const { data: blacklistData } = await supabase.from('blacklist').select('keyword');
     const blacklist = blacklistData?.map(b => b.keyword.toLowerCase()) || [];
-    let ingested = 0;
 
-    if (feeds) {
-      for (const source of feeds) {
+    const results = await Promise.all(
+      (feeds ?? []).map(async (source) => {
+        let count = 0;
         try {
           const feed = await parser.parseURL(source.url);
           for (const item of feed.items) {
             if (!item.title || !item.link) continue;
             if (blacklist.some(k => item.title!.toLowerCase().includes(k))) continue;
-
             const finalUrl = await resolveGoogleNewsUrl(item.link);
             const { error } = await supabase.from('articles').upsert(
-              [{
-                title: item.title,
-                url: finalUrl,
-                source: source.name,
-                is_read: false
-              }],
+              [{ title: item.title, url: finalUrl, source: source.name, is_read: false }],
               { onConflict: 'url', ignoreDuplicates: true }
             );
-            if (error) console.error(`Upsert error for ${item.title}:`, error.message);
-            else {
-              console.log(`✓ Saved: ${item.title}`);
-              ingested++;
-            }
+            if (!error) count++;
           }
-        } catch (e) { console.error(`Error feed ${source.name}:`, e); }
-        console.log(`✓ Feed processed: ${source.name}`);
-      }
-    }
+          console.log(`✓ Feed processed: ${source.name}`);
+        } catch (e) {
+          console.error(`Error feed ${source.name}:`, e);
+        }
+        return count;
+      })
+    );
+    const ingested = results.reduce((a, b) => a + b, 0);
 
     return NextResponse.json({ success: true, ingested });
   } catch (error: any) {
