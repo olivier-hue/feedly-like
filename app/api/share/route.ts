@@ -8,19 +8,27 @@ export async function POST(req: NextRequest) {
   let title = "";
 
   const contentType = req.headers.get("content-type") ?? "";
+  console.log("Share - contentType:", contentType);
+  const rawBody = await req.text();
+  console.log("Share - rawBody:", rawBody);
+
   if (contentType.includes("text/plain")) {
-    const text = await req.text();
-    const urlMatch = text.match(/https?:\/\/[^\s]+/);
+    const urlMatch = rawBody.match(/https?:\/\/[^\s]+/);
     url = urlMatch ? urlMatch[0] : "";
-    title = text.replace(url, "").replace(/\n/g, " ").trim();
+    title = rawBody.replace(url, "").replace(/\n/g, " ").trim();
   } else if (contentType.includes("application/x-www-form-urlencoded")) {
-    const formData = await req.formData();
-    url = ((formData.get("url") as string) ?? "").trim();
-    title = ((formData.get("title") as string) ?? "").trim();
+    const params = new URLSearchParams(rawBody);
+    url = (params.get("url") ?? "").trim();
+    title = (params.get("title") ?? "").trim();
   } else {
-    const json = await req.json().catch(() => ({}));
-    url = (json.url ?? "").trim();
-    title = (json.title ?? "").trim();
+    let json: { url?: string; title?: string } = {};
+    try {
+      json = rawBody ? JSON.parse(rawBody) : {};
+    } catch {
+      // ignore
+    }
+    url = (json?.url ?? "").trim();
+    title = (json?.title ?? "").trim();
   }
 
   // If url doesn't start with http, try to extract it from the text
@@ -65,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("Erreur API Share:", error);
+    console.error("Share error:", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
