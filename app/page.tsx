@@ -2,15 +2,17 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { 
-  Check, 
-  Copy, 
-  Settings, 
-  Filter, 
-  Loader2,
+import {
+  ArchiveRestore,
   Calendar,
+  Check,
   CheckCheck,
-  ArchiveRestore
+  Copy,
+  Filter,
+  Loader2,
+  Moon,
+  Settings,
+  Sun,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -58,6 +60,16 @@ export default function Dashboard() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isCopying, setIsCopying] = useState(false);
   const [viewMode, setViewMode] = useState<"unread" | "archived">("unread");
+   const [isDark, setIsDark] = useState(false);
+
+  // --- Theme ---
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
+    setIsDark(!!prefersDark);
+  }, []);
+
+  const toggleTheme = () => setIsDark((prev) => !prev);
 
   // --- Data Fetching ---
   const fetchArticles = async () => {
@@ -183,173 +195,435 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 p-6 font-sans">
-      {/* Header */}
-      <header className="flex justify-between items-center mb-8 max-w-7xl mx-auto">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
-            Curator <span className="text-blue-500">SportBiz</span>
-          </h1>
-          <div className="flex gap-4 mt-2">
-            <button 
-              onClick={() => setViewMode("unread")}
-              className={`text-sm font-medium transition-all pb-1 ${viewMode === "unread" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-500 hover:text-gray-300"}`}
-            >
-              À traiter ({viewMode === "unread" ? articles.length : '...'})
-            </button>
-            <button 
-              onClick={() => setViewMode("archived")}
-              className={`text-sm font-medium transition-all pb-1 ${viewMode === "archived" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-500 hover:text-gray-300"}`}
-            >
-              Archives
-            </button>
-          </div>
-        </div>
-        <Link href={`/admin?secret=${process.env.NEXT_PUBLIC_ADMIN_SECRET || ''}`} className="text-gray-400 hover:text-white flex items-center gap-2 text-sm border border-gray-800 px-3 py-1.5 rounded-md hover:bg-gray-900 transition-colors">
-          <Settings size={14} /> Admin
-        </Link>
-      </header>
-
-      {/* Toolbar */}
-      <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6 flex flex-wrap gap-6 items-end justify-between max-w-7xl mx-auto backdrop-blur-sm sticky top-2 z-10 shadow-xl">
-        <div className="flex gap-6 items-center">
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs font-medium text-gray-400 uppercase">
-              <span>Score {minScore}+</span>
+    <div
+      className={`min-h-screen font-sans ${
+        isDark ? "bg-[#0f0f0f] text-[#ededed]" : "bg-white text-gray-900"
+      }`}
+    >
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6 lg:px-8">
+        {/* Header */}
+        <header className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
+              Curator{" "}
+              <span className={isDark ? "text-blue-400" : "text-blue-600"}>
+                SportBiz
+              </span>
+            </h1>
+            <div className="mt-2 flex items-center gap-3 text-xs font-medium">
+              <button
+                onClick={() => setViewMode("unread")}
+                className={`border-b-2 pb-1 transition-colors ${
+                  viewMode === "unread"
+                    ? isDark
+                      ? "border-blue-500 text-blue-400"
+                      : "border-blue-600 text-blue-600"
+                    : isDark
+                    ? "border-transparent text-gray-500 hover:text-gray-300"
+                    : "border-transparent text-gray-500 hover:text-gray-800"
+                }`}
+              >
+                À traiter ({viewMode === "unread" ? articles.length : "..."})
+              </button>
+              <button
+                onClick={() => setViewMode("archived")}
+                className={`border-b-2 pb-1 transition-colors ${
+                  viewMode === "archived"
+                    ? isDark
+                      ? "border-blue-500 text-blue-400"
+                      : "border-blue-600 text-blue-600"
+                    : isDark
+                    ? "border-transparent text-gray-500 hover:text-gray-300"
+                    : "border-transparent text-gray-500 hover:text-gray-800"
+                }`}
+              >
+                Archives
+              </button>
             </div>
-            <input type="range" min="0" max="10" value={minScore} onChange={(e) => setMinScore(Number(e.target.value))} className="w-32 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className={`inline-flex h-8 w-8 items-center justify-center rounded-full border text-xs transition-colors ${
+                isDark
+                  ? "border-[#262626] bg-[#161616] text-gray-300 hover:bg-[#1f1f1f]"
+                  : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+              }`}
+              aria-label="Basculer le thème"
+            >
+              {isDark ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </button>
+            <Link
+              href={`/admin?secret=${process.env.NEXT_PUBLIC_ADMIN_SECRET || ""}`}
+              className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                isDark
+                  ? "border-[#262626] text-gray-300 hover:bg-[#161616]"
+                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <Settings size={14} />
+              Admin
+            </Link>
+          </div>
+        </header>
+
+        {/* Toolbar */}
+        <div
+          className={`flex flex-wrap items-end justify-between gap-4 rounded-lg border px-4 py-3 text-xs ${
+            isDark
+              ? "border-[#262626] bg-[#161616]"
+              : "border-gray-200 bg-white"
+          }`}
+        >
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[11px] font-medium text-gray-500">
+                <span>Score {minScore}+</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                value={minScore}
+                onChange={(e) => setMinScore(Number(e.target.value))}
+                className={`h-1.5 w-32 cursor-pointer appearance-none rounded-full ${
+                  isDark ? "bg-[#262626] accent-blue-500" : "bg-gray-200 accent-blue-600"
+                }`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-1 text-[11px] font-medium text-gray-500">
+                <Filter size={10} />
+                <span>Catégorie</span>
+              </div>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className={`h-8 rounded-md border px-2 text-xs outline-none focus:ring-1 focus:ring-blue-500 ${
+                  isDark
+                    ? "border-[#262626] bg-[#161616] text-gray-200"
+                    : "border-gray-200 bg-white text-gray-700"
+                }`}
+              >
+                <option value="All">Toutes</option>
+                {VALID_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-gray-500">Tri</div>
+              <div className="flex gap-2">
+                <select
+                  value={sortBy}
+                  onChange={(e) =>
+                    setSortBy(e.target.value as "created_at" | "relevance_score")
+                  }
+                  className={`h-8 rounded-md border px-2 text-xs outline-none focus:ring-1 focus:ring-blue-500 ${
+                    isDark
+                      ? "border-[#262626] bg-[#161616] text-gray-200"
+                      : "border-gray-200 bg-white text-gray-700"
+                  }`}
+                >
+                  <option value="created_at">Date</option>
+                  <option value="relevance_score">Score</option>
+                </select>
+                <select
+                  value={sortDir}
+                  onChange={(e) =>
+                    setSortDir(e.target.value as "desc" | "asc")
+                  }
+                  className={`h-8 rounded-md border px-2 text-xs outline-none focus:ring-1 focus:ring-blue-500 ${
+                    isDark
+                      ? "border-[#262626] bg-[#161616] text-gray-200"
+                      : "border-gray-200 bg-white text-gray-700"
+                  }`}
+                >
+                  <option value="desc">↓ Desc</option>
+                  <option value="asc">↑ Asc</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-1">
-            <div className="text-xs font-medium text-gray-400 uppercase flex gap-1 items-center"><Filter size={10}/> Filtre Catégorie</div>
-            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="bg-gray-800 text-sm text-white border border-gray-700 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none">
-              <option value="All">Toutes</option>
-              {VALID_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <div className="text-xs font-medium text-gray-400 uppercase">Sort by</div>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as "created_at" | "relevance_score")} className="bg-gray-800 text-sm text-white border border-gray-700 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none">
-              <option value="created_at">Date</option>
-              <option value="relevance_score">Score</option>
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <div className="text-xs font-medium text-gray-400 uppercase">Order</div>
-            <select value={sortDir} onChange={(e) => setSortDir(e.target.value as "desc" | "asc")} className="bg-gray-800 text-sm text-white border border-gray-700 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none">
-              <option value="desc">↓ Desc</option>
-              <option value="asc">↑ Asc</option>
-            </select>
+          <div className="flex gap-2">
+            <button
+              onClick={copyForBeehiiv}
+              className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition-colors ${
+                isCopying
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : isDark
+                  ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600"
+                  : "border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+            >
+              {isCopying ? <Check size={14} /> : <Copy size={14} />}
+              {selectedIds.size > 0
+                ? `Copier (${selectedIds.size})`
+                : "Copier tout"}
+            </button>
+            <button
+              onClick={() =>
+                toggleReadStatus(
+                  selectedIds.size > 0
+                    ? Array.from(selectedIds)
+                    : filteredArticles.map((a) => a.id)
+                )
+              }
+              className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition-colors ${
+                viewMode === "unread"
+                  ? isDark
+                    ? "border-red-500/40 text-red-400 hover:bg-red-500/10"
+                    : "border-red-500/30 text-red-600 hover:bg-red-500/5"
+                  : isDark
+                  ? "border-blue-500/40 text-blue-400 hover:bg-blue-500/10"
+                  : "border-blue-500/30 text-blue-600 hover:bg-blue-500/5"
+              }`}
+            >
+              {viewMode === "unread" ? (
+                <CheckCheck size={14} />
+              ) : (
+                <ArchiveRestore size={14} />
+              )}
+              {viewMode === "unread"
+                ? selectedIds.size > 0
+                  ? `Archiver (${selectedIds.size})`
+                  : "Tout archiver"
+                : selectedIds.size > 0
+                ? `Restaurer (${selectedIds.size})`
+                : "Tout restaurer"}
+            </button>
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <button onClick={copyForBeehiiv} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all shadow-lg ${isCopying ? 'bg-green-600 text-white' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}>
-            {isCopying ? <Check size={16} /> : <Copy size={16} />}
-            {selectedIds.size > 0 ? `Copier (${selectedIds.size})` : "Copier Tout"}
-          </button>
-          <button 
-            onClick={() => toggleReadStatus(selectedIds.size > 0 ? Array.from(selectedIds) : filteredArticles.map(a => a.id))} 
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all border ${viewMode === 'unread' ? 'bg-red-900/20 hover:bg-red-900/40 text-red-400 border-red-900/30' : 'bg-blue-900/20 hover:bg-blue-900/40 text-blue-400 border-blue-900/30'}`}
-          >
-            {viewMode === 'unread' ? <CheckCheck size={16} /> : <ArchiveRestore size={16} />}
-            {viewMode === 'unread' 
-              ? (selectedIds.size > 0 ? `Archiver (${selectedIds.size})` : "Tout archiver")
-              : (selectedIds.size > 0 ? `Restaurer (${selectedIds.size})` : "Tout restaurer")
-            }
-          </button>
-        </div>
-      </div>
+        {/* Content */}
+        <div
+          className={`overflow-hidden rounded-lg border ${
+            isDark ? "border-[#262626] bg-[#0f0f0f]" : "border-gray-200 bg-white"
+          }`}
+        >
+          {isLoading ? (
+            <div className="flex justify-center py-16 text-gray-400">
+              <Loader2 className="h-5 w-5 animate-spin" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr
+                    className={`text-[11px] font-semibold uppercase tracking-wide ${
+                      isDark
+                        ? "border-b border-[#262626] bg-[#161616] text-gray-400"
+                        : "border-b border-gray-200 bg-gray-50 text-gray-500"
+                    }`}
+                  >
+                    <th className="px-4 py-2.5 w-8">
+                      <input
+                        type="checkbox"
+                        onChange={toggleSelectAll}
+                        checked={
+                          selectedIds.size > 0 &&
+                          selectedIds.size === filteredArticles.length
+                        }
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                      />
+                    </th>
+                    <th className="px-4 py-2.5 w-[35%] text-xs font-semibold">
+                      Article
+                    </th>
+                    <th className="px-4 py-2.5 w-24 text-center text-xs font-semibold">
+                      Score
+                    </th>
+                    <th className="px-4 py-2.5 w-48 text-xs font-semibold">
+                      Catégorie
+                    </th>
+                    <th className="px-4 py-2.5 text-xs font-semibold">
+                      Beehiiv
+                    </th>
+                    <th className="px-4 py-2.5 w-10" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredArticles.map((article, index) => {
+                    const isSelected = selectedIds.has(article.id);
+                    const showDateHeader =
+                      index === 0 ||
+                      new Date(
+                        filteredArticles[index - 1].created_at
+                      ).toDateString() !==
+                        new Date(article.created_at).toDateString();
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
-        {isLoading ? (
-          <div className="p-20 flex justify-center text-gray-500"><Loader2 className="animate-spin" /></div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-950/50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-800">
-                  <th className="p-4 w-10"><input type="checkbox" onChange={toggleSelectAll} checked={selectedIds.size > 0 && selectedIds.size === filteredArticles.length} className="rounded border-gray-700 bg-gray-800 text-blue-600" /></th>
-                  <th className="p-4 w-[35%]">Article</th>
-                  <th className="p-4 w-32 text-center">Score</th>
-                  <th className="p-4 w-48">Catégorie</th>
-                  <th className="p-4">Beehiiv Link</th>
-                  <th className="p-4 w-16"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-800">
-                {filteredArticles.map((article, index) => {
-                  const isSelected = selectedIds.has(article.id);
-                  const showDateHeader = index === 0 || 
-                    new Date(filteredArticles[index-1].created_at).toDateString() !== new Date(article.created_at).toDateString();
-                  
-                  return (
-                    <tr key={article.id} className={`group hover:bg-gray-800/50 transition-colors ${isSelected ? 'bg-blue-900/10' : ''}`}>
-                      <td className="p-4">
-                        <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(article.id)} className="rounded border-gray-700 bg-gray-800 text-blue-600" />
-                      </td>
-                      <td className="p-4">
-                        {showDateHeader && (
-                          <div className="flex items-center gap-2 text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-3 bg-blue-500/5 py-1 px-2 rounded w-fit">
-                            <Calendar size={10} /> {formatDateTitle(article.created_at)}
+                    const score = article.relevance_score;
+                    const scoreClass =
+                      score !== null && score >= 8
+                        ? isDark
+                          ? "bg-emerald-500/10 text-emerald-400"
+                          : "bg-emerald-100 text-emerald-700"
+                        : score !== null && score >= 5
+                        ? isDark
+                          ? "bg-amber-500/10 text-amber-400"
+                          : "bg-amber-100 text-amber-700"
+                        : isDark
+                        ? "bg-[#161616] text-gray-500"
+                        : "bg-gray-100 text-gray-500";
+
+                    return (
+                      <tr
+                        key={article.id}
+                        className={`group text-sm ${
+                          isDark
+                            ? "border-b border-[#262626] last:border-b-0 hover:bg-[#161616]"
+                            : "border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
+                        } ${
+                          isSelected
+                            ? isDark
+                              ? "bg-[#161616]"
+                              : "bg-blue-50"
+                            : ""
+                        }`}
+                      >
+                        <td className="px-4 py-3 align-top">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelect(article.id)}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                          />
+                        </td>
+                        <td className="px-4 py-3 align-top">
+                          {showDateHeader && (
+                            <div className="mb-2 flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">
+                              <Calendar className="h-3 w-3" />
+                              <span>{formatDateTitle(article.created_at)}</span>
+                            </div>
+                          )}
+                          <a
+                            href={article.url}
+                            target="_blank"
+                            className={`block text-sm font-medium leading-snug ${
+                              isDark
+                                ? "text-[#ededed] hover:text-blue-400"
+                                : "text-gray-900 hover:text-blue-600"
+                            } underline-offset-4 hover:underline`}
+                          >
+                            {article.title}
+                          </a>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
+                            <span>
+                              {article.source || getDomain(article.url)}
+                            </span>
+                            {article.access_status === "paywall" && (
+                              <span className="text-[10px] font-semibold text-amber-500">
+                                PAYWALL
+                              </span>
+                            )}
+                            <span>
+                              •{" "}
+                              {new Date(
+                                article.created_at
+                              ).toLocaleTimeString("fr-FR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
                           </div>
-                        )}
-                        <a href={article.url} target="_blank" className="font-medium text-gray-200 hover:text-blue-400 leading-snug block mb-1 underline-offset-4 hover:underline">
-                          {article.title}
-                        </a>
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <span className="bg-gray-800 px-1.5 py-0.5 rounded border border-gray-700">{article.source || getDomain(article.url)}</span>
-                          {article.access_status === 'paywall' && <span className="text-yellow-600 text-[10px] font-bold border border-yellow-900/50 px-1 rounded">PAYWALL</span>}
-                          <span>• {new Date(article.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
-                        </div>
-                        {article.summary && <p className="text-sm text-gray-400 mt-2 line-clamp-2 italic leading-relaxed">"{article.summary}"</p>}
-                      </td>
-                      
-                      <td className="p-4 text-center">
-                        <span className={`inline-block px-2 py-1 rounded-md text-xs font-bold ${article.relevance_score && article.relevance_score >= 8 ? "bg-green-500/10 text-green-500" : "bg-gray-800 text-gray-400"}`}>
-                          {article.relevance_score}/10
-                        </span>
-                      </td>
+                          {article.summary && (
+                            <p className="mt-1 line-clamp-2 text-[11px] italic text-gray-400">
+                              "{article.summary}"
+                            </p>
+                          )}
+                        </td>
 
-                      <td className="p-4">
-                        <select 
-                          value={article.category || ""} 
-                          onChange={(e) => updateCategory(article.id, e.target.value)}
-                          className="w-full bg-gray-950 text-xs text-gray-400 border border-gray-800 rounded p-1.5 outline-none focus:border-blue-500 transition-all"
-                        >
-                          <option value="" disabled>-</option>
-                          {VALID_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                        </select>
-                      </td>
+                        <td className="px-4 py-3 text-center align-top">
+                          <span
+                            className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${scoreClass}`}
+                          >
+                            {article.relevance_score}/10
+                          </span>
+                        </td>
 
-                      <td className="p-4 font-mono text-[10px] text-gray-600 select-all">
-                        <div className="bg-gray-950/50 p-2 rounded border border-gray-800 truncate max-w-[200px]">
-                           {article.title} - [{article.source || getDomain(article.url)}]({article.url}) {getEmoji(article.access_status)}
-                        </div>
-                      </td>
+                        <td className="px-4 py-3 align-top">
+                          <select
+                            value={article.category || ""}
+                            onChange={(e) =>
+                              updateCategory(article.id, e.target.value)
+                            }
+                            className={`w-full rounded-md border px-2 py-1 text-[11px] outline-none focus:ring-1 focus:ring-blue-500 ${
+                              isDark
+                                ? "border-[#262626] bg-[#161616] text-gray-200"
+                                : "border-gray-200 bg-white text-gray-700"
+                            }`}
+                          >
+                            <option value="" disabled>
+                              -
+                            </option>
+                            {VALID_CATEGORIES.map((cat) => (
+                              <option key={cat} value={cat}>
+                                {cat}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
 
-                      <td className="p-4 text-right">
-                         <button 
-                          onClick={() => toggleReadStatus([article.id])} 
-                          className={`p-2 transition-all opacity-0 group-hover:opacity-100 rounded-md ${viewMode === 'unread' ? 'text-gray-700 hover:text-green-500 hover:bg-green-500/10' : 'text-blue-500 hover:text-blue-400 hover:bg-blue-500/10'}`}
-                          title={viewMode === 'unread' ? "Archiver" : "Restaurer"}
-                        >
-                          {viewMode === 'unread' ? <Check size={18} /> : <ArchiveRestore size={18} />}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            {filteredArticles.length === 0 && (
-              <div className="p-20 text-center text-gray-500 italic">Aucun article dans cette section.</div>
-            )}
-          </div>
-        )}
+                        <td className="px-4 py-3 align-top">
+                          <div
+                            className={`max-w-xs truncate rounded-md border px-2 py-1 text-[11px] font-mono ${
+                              isDark
+                                ? "border-[#262626] bg-[#0f0f0f] text-gray-400"
+                                : "border-gray-200 bg-gray-50 text-gray-500"
+                            }`}
+                          >
+                            {article.title} - [
+                            {article.source || getDomain(article.url)}](
+                            {article.url}) {getEmoji(article.access_status)}
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3 text-right align-top">
+                          <button
+                            onClick={() => toggleReadStatus([article.id])}
+                            className={`rounded-md p-1.5 text-xs opacity-0 transition-opacity group-hover:opacity-100 ${
+                              viewMode === "unread"
+                                ? isDark
+                                  ? "text-gray-400 hover:text-emerald-400"
+                                  : "text-gray-400 hover:text-emerald-600"
+                                : isDark
+                                ? "text-blue-400 hover:text-blue-300"
+                                : "text-blue-500 hover:text-blue-600"
+                            }`}
+                            title={
+                              viewMode === "unread" ? "Archiver" : "Restaurer"
+                            }
+                          >
+                            {viewMode === "unread" ? (
+                              <Check size={16} />
+                            ) : (
+                              <ArchiveRestore size={16} />
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              {filteredArticles.length === 0 && (
+                <div className="py-16 text-center text-xs italic text-gray-400">
+                  Aucun article dans cette section.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
