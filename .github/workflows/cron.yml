@@ -13,3 +13,12 @@ jobs:
         run: |
           curl -X GET "https://${{ secrets.VERCEL_PROJECT_URL }}/api/cron" \
           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+analyze-news:
+    runs-on: ubuntu-latest
+    needs: update-news
+    steps:
+      - name: Call Analyze API
+        run: |
+          curl -X POST "https://${{ secrets.VERCEL_PROJECT_URL }}/api/analyze-auto" \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

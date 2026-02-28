@@ -12,14 +12,19 @@ const supabase = createClient(
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-export async function POST() {
+export async function POST(request: Request) {
+  const authHeader = request.headers.get('authorization');
+  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const { data: unanalyzed } = await supabase
     .from('articles')
     .select('*')
     .is('analysis_json', null)
     .neq('source', 'share-target') // Don't re-analyze manually shared articles
     .order('created_at', { ascending: false })
-    .limit(5); // Keep low to stay within Vercel 60s timeout
+    .limit(10);
 
   console.log(`Articles to analyze: ${unanalyzed?.length ?? 0}`);
   if (unanalyzed && unanalyzed.length > 0) {
