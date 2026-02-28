@@ -41,8 +41,11 @@ export async function GET(request: Request) {
         let count = 0;
         try {
           const feed = await parser.parseURL(source.url);
+          const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
           for (const item of feed.items) {
             if (!item.title || !item.link) continue;
+            const pubDate = item.isoDate ? new Date(item.isoDate) : null;
+            if (pubDate && pubDate < sevenDaysAgo) continue;
             if (blacklist.some(k => item.title!.toLowerCase().includes(k))) continue;
             const finalUrl = await resolveGoogleNewsUrl(item.link);
             const { error } = await supabase.from('articles').upsert(
