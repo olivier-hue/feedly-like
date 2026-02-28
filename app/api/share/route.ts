@@ -8,7 +8,12 @@ export async function POST(req: NextRequest) {
   let title = "";
 
   const contentType = req.headers.get("content-type") ?? "";
-  if (contentType.includes("application/x-www-form-urlencoded")) {
+  if (contentType.includes("text/plain")) {
+    const text = await req.text();
+    const urlMatch = text.match(/https?:\/\/[^\s]+/);
+    url = urlMatch ? urlMatch[0] : "";
+    title = text.replace(url, "").replace(/\n/g, " ").trim();
+  } else if (contentType.includes("application/x-www-form-urlencoded")) {
     const formData = await req.formData();
     url = ((formData.get("url") as string) ?? "").trim();
     title = ((formData.get("title") as string) ?? "").trim();
