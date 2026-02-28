@@ -20,10 +20,22 @@ const VALID_CATEGORIES = [
   "Tous les sports", "Trail", "Triathlon", "Vidéo", "Voile", "Volleyball"
 ].sort();
 
+function parseRawText(raw: string): { url: string; title: string } {
+  const decoded = decodeURIComponent(raw);
+  const lines = decoded.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const urlLine = lines.find((l) => /^https?:\/\//i.test(l));
+  const titleLines = lines.filter((l) => l !== urlLine);
+  return {
+    url: urlLine ?? "",
+    title: titleLines.join(" ").trim(),
+  };
+}
+
 function ShareForm() {
   const searchParams = useSearchParams();
   const urlParam = searchParams.get("url") ?? "";
   const titleParam = searchParams.get("title") ?? "";
+  const rawParam = searchParams.get("raw") ?? "";
 
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
@@ -33,9 +45,15 @@ function ShareForm() {
   const [codeCopied, setCodeCopied] = useState(false);
 
   useEffect(() => {
-    setUrl(urlParam);
-    setTitle(titleParam);
-  }, [urlParam, titleParam]);
+    if (rawParam) {
+      const { url: parsedUrl, title: parsedTitle } = parseRawText(rawParam);
+      setUrl(parsedUrl);
+      setTitle(parsedTitle);
+    } else {
+      setUrl(urlParam);
+      setTitle(titleParam);
+    }
+  }, [rawParam, urlParam, titleParam]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
