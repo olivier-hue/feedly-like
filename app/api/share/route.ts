@@ -18,6 +18,16 @@ export async function POST(req: NextRequest) {
     title = (json.title ?? "").trim();
   }
 
+  // If url doesn't start with http, try to extract it from the text
+  if (!url || !url.startsWith("http")) {
+    const text = url || title || "";
+    const urlMatch = text.match(/https?:\/\/[^\s]+/);
+    if (urlMatch) {
+      url = urlMatch[0];
+      title = text.replace(url, "").replace(/\n/g, " ").trim();
+    }
+  }
+
   if (!url) {
     return NextResponse.json({ error: "Missing url" }, { status: 400 });
   }
