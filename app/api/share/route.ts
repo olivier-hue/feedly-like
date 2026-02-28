@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       .update({ relevance_score: 10, category: null })
       .eq("url", url);
 
-    return NextResponse.redirect(new URL("/", req.url), 303);
+    return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Erreur API Share:", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
