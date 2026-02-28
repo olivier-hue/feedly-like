@@ -31,6 +31,17 @@ export async function POST(req: NextRequest) {
     title = (json?.title ?? "").trim();
   }
 
+  // L'Equipe sends "title\nURL" in the url field
+  if (url && !url.startsWith("http")) {
+    const lines = url.split("\n").map((l: string) => l.trim());
+    const urlLine = lines.find((l: string) => l.startsWith("http"));
+    const titleLine = lines.find((l: string) => !l.startsWith("http"));
+    if (urlLine) {
+      title = title || titleLine || "";
+      url = urlLine;
+    }
+  }
+
   // If url doesn't start with http, try to extract it from the text
   if (!url || !url.startsWith("http")) {
     const text = url || title || "";
