@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addArticle } from "@/lib/db";
+import { addArticle, supabase } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -72,8 +72,14 @@ export async function POST(req: NextRequest) {
     await addArticle({
       url,
       title: title || url,
-      source: "iOS Share",
+      source: "share-target",
     });
+
+    // Set max score for manually shared articles
+    await supabase
+      .from("articles")
+      .update({ relevance_score: 10 })
+      .eq("url", url);
 
     return NextResponse.json({ success: true, message: "Lien ajouté." });
 
